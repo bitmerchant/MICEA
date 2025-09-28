@@ -801,13 +801,7 @@ class Packets:
                     self.client.canLogin[2] = True
 
                 # URL
-                if len(self.server.serverURL) > 0:
-                    for _url in self.server.serverURL:
-                        if url.startswith(_url):
-                            self.client.canLogin[3] = True
-                            break
-                else:
-                    self.client.canLogin[3] = True
+                self.client.canLogin[3] = True
 
                 if playerName == "" and password != "":
                     self.client.sendPacket(Identifiers.send.Login_Result, ByteArray().writeByte(2).writeUTF(playerName).writeUTF("").toByteArray())
