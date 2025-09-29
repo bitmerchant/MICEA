@@ -286,7 +286,7 @@ class Client:
         self.Commands = Commands(self, self.server)
         self.playerException = GameException(self)
         self.missions = Missions(self, self.server)
-        self.AntiCheat = AntiCheat(self, self.server)
+        #self.AntiCheat = AntiCheat(self, self.server)
         self.Cafe = Cafe(self, self.server)
         if self.ipAddress in self.server.connectedCounts:
             self.server.connectedCounts[self.ipAddress] += 1
