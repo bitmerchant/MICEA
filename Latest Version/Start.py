@@ -25,7 +25,7 @@ class Client:
         self.server = _server
 
         # String
-        self.computerLanguage = "EN"
+        self.computerLanguage = "BR"
         self.computerOS = ""
         self.computerOSVersion = ""
         self.currentCaptcha = ""
@@ -108,7 +108,7 @@ class Client:
         self.shamanCheeses = 0
         self.shamanExp = 0
         self.shamanExpNext = 32
-        self.shamanLevel = 0
+        self.shamanLevel = 2023
         self.shamanSaves = 0
         self.shamanSavesNoSkill = 0
         self.shamanType = 0
@@ -180,8 +180,6 @@ class Client:
         self.useTotem = False
         self.validatingVersion = False
         self.canChangeMission = True
-        self.sendFlashWarning = False
-        self.showTakeCheesePopup = False
 
         # Others
         self.Cursor = Cursor
@@ -383,7 +381,6 @@ class Client:
                 version, lang, ckey, stand = packet.readShort(), packet.readUTF(), packet.readUTF(), packet.readUTF()
                 if stand == "StandAlone" and self.server.activateAntiCheat:
                     self.sendServerMessage("[Anti-Cheat] The ip "+Utils.EncodeIP(self.ipAddress)+" is connected with standalone.")
-                    self.sendFlashWarning = True
 
                 if not ckey == self.server.CKEY and version != self.server.Version:
                     print("[%s] [WARN] Invalid version or CKey (%s, %s)" %(time.strftime("%H:%M:%S"), version, ckey))
@@ -617,6 +614,7 @@ class Client:
         if self.isTrade:
             self.cancelTrade(self.tradeName)
             
+        roomFuncorps = []
         roomName = roomName.replace("<", "&lt;") #
         if not roomName.startswith("*") and not roomName.startswith("@") and not (len(roomName) > 3 and roomName[2] == "-" and self.privLevel >= 7): #
             roomName = "%s-%s" %(self.langue, roomName) #
@@ -632,14 +630,13 @@ class Client:
         self.sendGameType(11 if "music" in roomName else 4, 0) #
         self.sendEnterRoom(roomName) #
         self.server.addClientToRoom(self, roomName) #
-        self.room.roomFuncorps = []
         
         self.sendPacket(Identifiers.old.send.Anchors, self.room.anchors)
         self.sendPacket([29, 1], "")
 
         for player in [*self.server.rooms[roomName].clients.values()]:
             if player.privLevel in [5, 9] or player.isFunCorpPlayer:
-                self.room.roomFuncorps.append(player.playerName)
+                roomFuncorps.append(player.playerName)
         
             if self.playerName in self.friendsList and player.playerName in player.friendsList:
                 player.tribulle.sendFriendChangedRoom(self.playerName, self.langueID)
@@ -657,10 +654,10 @@ class Client:
             self.skipMusicTimer = self.server.loop.call_later(900, setattr, self, "canSkipMusic", True)
 
         if self.room.isFastRacing:
-            self.sendMessage("<V>[#]</V> <V>Welcome to</V> <BL>Fastracing</BL>.\n<V>[#]</V> <V>To view the</V> <V>leaderboard,</V> <v>type</v> '<BL>!lb</BL>'\n<V>[#]</V> '<BL>!listrec</BL>' <V>to learn more about your broken records.</V>")
+            self.sendMessage("<r><n>[#] <BV>Bem-Vindo a </BV><r></n>Fastracing<r></n>.\n<r></n><r><n>[#] <BV>Para ver seus records digite: </V><r><n>!listrec<r></n><BV>\n<r><n>[#]<BV> Para ver o ranking de records digite: </V><r><n>!lb<r></n><BV>\n<r><n>[#]<BV> Para ver o ranking de jogadores: </V><r><n>Clique no botão roxo com um ícone de Trofeu do lado da Loja.<r></n>")
     
         if self.room.isFuncorp:
-            self.sendLangueMessage("", "<FC>$FunCorpActiveAvecMembres</FC>", ', '.join(map(str, self.room.roomFuncorps)))
+            self.sendLangueMessage("", "<FC>$FunCorpActiveAvecMembres</FC>", ', '.join(map(str, roomFuncorps)))
 
         if self.followed != None:
             self.followed.enterRoom(self.roomName)
@@ -804,6 +801,7 @@ class Client:
         if password == "":
             playerName = self.server.checkAlreadyExistingGuest(playerName)
             startRoom = "\x03[Tutorial] %s" %(playerName)
+            return
             self.isGuest = True
                         
         if not self.isGuest:
@@ -935,8 +933,8 @@ class Client:
                         return
 
             if "@" not in playerName:
-                self.playerName = playerName
                 self.server.lastPlayerCode += 1
+                self.playerName = playerName
                 self.playerCode = self.server.lastPlayerCode
                 self.server.players[self.playerName] = self
                 if len(self.server.players) > self.server.MaximumPlayers:
@@ -957,10 +955,15 @@ class Client:
                 loginlog.write("PlayerName: %s | IP Address: %s | Date: %s | Language: %s | Player Code: %s |.\n" % (playerName, self.ipAddress, Utils.getDate(), self.langue, self.playerCode))
                 traceback.print_exc(file=loginlog)
                 loginlog.close()
-                self.sendPacket(Identifiers.send.Community_Partners, ByteArray().writeShort(1).writeUTF("DisneyClient").writeUTF("https://disneyclient.com/public/logo.png").toByteArray())
+                self.sendPacket(Identifiers.send.Community_Partners, ByteArray().writeShort(1).writeUTF("Acesse o Site").writeUTF("https://api2.iloveimg.com/v1/download/dl0d0vwwtAj3wjf2bm85s9zvg62y461k6kndypp4qp3y8n72tpAccx5yx0shj31k7kyxql02n1rwnA2kqst1q7yxmpbxqs5c0lvq9b1j8jwk9skbns74wr17ljr8t9h5y2yhnzA1h4ld5qx525jxdwz9fgvy0z2d22Ahz3A5197sj8gwqbsq").toByteArray())
+                self.sendPacket(Identifiers.send.Community_Partners, ByteArray().writeShort(1).writeUTF("Discord").writeUTF("https://api10.iloveimg.com/v1/download/xrcd9lpl39kmsAn2v6n1ky1zqk845hg0j9cpj7507kddkvwlmkg395vfv6vc8s61xr9qqvct7vqn2r0xpbhr2np7pyv6jf608f5dv5fzmy1vdfcj2xv3pA18zyhr9zgdz7rn07pdd2A1n2clmzp6nnqtshfyf246h1f4r125rw9qsm196021").toByteArray())
+                self.sendPacket(Identifiers.send.Community_Partners, ByteArray().writeShort(1).writeUTF("Acesse o Forum").writeUTF("https://s168.convertio.me/p/ogROJdigaKVu3Z3aWdQcBw/c59c6e58beecaa58898d3f3ba905c821/aaaaaaaaa-removebg-preview.jpg").toByteArray())
+                self.sendPacket(Identifiers.send.Community_Partners, ByteArray().writeShort(1).writeUTF("Lojinha").writeUTF("https://s168.convertio.me/p/ogROJdigaKVu3Z3aWdQcBw/c59c6e58beecaa58898d3f3ba905c821/aaaaaaaaa-removebg-preview.jpg").toByteArray())
+                self.sendPacket(Identifiers.send.Community_Partners, ByteArray().writeShort(1).writeUTF("Campeonato").writeUTF("https://s168.convertio.me/p/ogROJdigaKVu3Z3aWdQcBw/c59c6e58beecaa58898d3f3ba905c821/aaaaaaaaa-removebg-preview.jpg").toByteArray())
+                self.sendPacket(Identifiers.send.Community_Partners, ByteArray().writeShort(1).writeUTF("Roleta PIX").writeUTF("https://s168.convertio.me/p/ogROJdigaKVu3Z3aWdQcBw/c59c6e58beecaa58898d3f3ba905c821/aaaaaaaaa-removebg-preview.jpg").toByteArray())
+                self.sendPacket(Identifiers.send.Community_Partners, ByteArray().writeShort(1).writeUTF("Entrar na Staff").writeUTF("https://s168.convertio.me/p/ogROJdigaKVu3Z3aWdQcBw/c59c6e58beecaa58898d3f3ba905c821/aaaaaaaaa-removebg-preview.jpg").toByteArray())
                 self.sendPlayerIdentification()
                 self.sendLogin()
-                self.sendPacket(Identifiers.send.Switch_Tribulle, ByteArray().writeBoolean(True).toByteArray())
                 if not self.isGuest:
                     # Staff Positions
                     self.isLuaCrew = True if "LuaCrew" in self.roles else False
@@ -1022,6 +1025,7 @@ class Client:
                         self.tribeRanks = str(self.tribeInfo[3])
                         self.tribeChat = str(self.tribeInfo[4])
                     
+                    self.sendPacket(Identifiers.send.Switch_Tribulle, ByteArray().writeBoolean(True).toByteArray())
                     self.sendPacketTribulle(62, ByteArray().writeUTF(self.computerLanguage).toByteArray())
                     self.tribulle.sendFriendsList(None)
                     
@@ -1042,9 +1046,6 @@ class Client:
                 self.ResetAfkKillTimer()
                 self.resSkillsTimer = self.server.loop.call_later(600, setattr, self, "canRedistributeSkills", True)
                 self.startBulle(self.server.checkRoom(startRoom, self.langue) if not startRoom == "" and not startRoom == "1" else self.server.recommendRoom(self.langue))
-                if self.sendFlashWarning:
-                    self.sendPacket(Identifiers.send.Browser_Version_Attention, ByteArray().writeUTF("TEST").toByteArray())
-                    self.sendFlashWarning = False
 
     def receiveIPDetails(self, ipAddress):
         if ipAddress == "127.0.0.1":
@@ -1183,7 +1184,7 @@ class Client:
         self.sendPacket([100, 101], ByteArray().writeByte(1).writeBoolean(True).toByteArray())
 
     def sendEmotion(self, emotion):
-        self.room.sendAllOthers(self, Identifiers.send.Emotion, ByteArray().writeInt(self.playerCode).writeShort(emotion).toByteArray())
+        self.room.sendAllOthers(self, Identifiers.send.Emotion, ByteArray().writeInt(self.playerCode).writeByte(emotion).toByteArray())
 
     def sendEnterRoom(self, roomName, lang=""):
         if lang == "": lang = self.langue
@@ -1194,13 +1195,6 @@ class Client:
             if rooms.startswith(room) and not count == "" or rooms.isdigit():
                 found = not (int(count) < 1 or int(count) > 1000000000 or rooms == room)
         self.sendPacket(Identifiers.send.Enter_Room, ByteArray().writeBoolean(found).writeUTF(roomName).writeUTF("int" if roomName.startswith("*") or roomName.startswith("@") else lang).toByteArray())
-
-        if self.showTakeCheesePopup:
-            self.sendPacket(Identifiers.send.Take_Cheese, ByteArray().writeShort(1000).toByteArray())
-            self.shopCheeses -= 1000
-            if self.shopCheeses < 0:
-                self.shopCheeses = 0
-            self.showTakeCheesePopup = False
 
     def sendGameType(self, gameType, serverType):
         self.sendPacket(Identifiers.send.Room_Type, gameType)
@@ -1835,7 +1829,7 @@ class Client:
             update = {}
             update['Clothes'], update['Look'], update['LastOn'] = "|".join(map(str, self.clothes)), self.playerLook, self.tribulle.getTime()
             update['Badges'], update['Skills'] = ",".join(map(str, self.shopBadges)), ";".join(map(lambda skill: "%s:%s" %(skill[0], skill[1]), self.playerSkills.items()))
-            update['FriendsList'], update['IgnoredsList'] = ",".join(map(str, filter(None, [self.server.getPlayerID(friend) for friend in self.friendsList]))), ",".join(map(str, filter(None, self.ignoredsList)))
+            update['FriendsList'], update['IgnoredsList'] = ",".join(map(str, filter(None, [self.server.getPlayerID(friend) for friend in self.friendsList]))), ",".join(map(str, filter(None, [self.server.getPlayerID(ignored) for ignored in self.ignoredsList])))
             update['Gifts'], update['Letters'], update['Messages'], update['Karma'], update['Time'] = self.shopGifts, self.playerLetters, self.shopMessages, self.playerKarma, self.playerTime + abs(Utils.getSecondsDiff(self.loginTime))
             update['Consumables'] = ";".join(map(lambda consumable: "%s:%s" %(consumable[0], consumable[1]), self.playerConsumables.items()))
             update['PetEnd'], update['FurEnd'] = abs(Utils.getSecondsDiff(self.petEnd)), abs(Utils.getSecondsDiff(self.furEnd))
@@ -1957,10 +1951,10 @@ class Client:
         if len(self.records) < 10: sinir=len(self.records)
         self.sayfasayi = int(math.ceil(len(self.records)/10.0))
         if self.sayfasayi < 1: self.sayfasayi = 1
-        self.room.addTextArea(5000, "<p align='center'><font color='#ffc15e'><b>LEADER BOARD</b></font></p>", isim, x,y, pg,pu, 0x111111, 0x111111, 90, False)
+        self.room.addTextArea(5000, "<p align='center'><font color='#ffc15e'><b><r>Ranking</r> <BV>Records</BV></b></font></p>", isim, x,y, pg,pu, 0x111111, 0x111111, 90, False)
         self.room.addTextArea(5001, "" , isim, x+20, y+20, pg-40, 15, 0x111111, 0xFFFFFF, 10, False)
-        self.room.addTextArea(5002, "<p align='center'><font color='#ffc15e'>Player</font></p>" , isim, x-80, y+20, pg-40, 40, 0x111111, 0xFFFFFF, 0, False)
-        self.room.addTextArea(5003, "<p align='center'><font color='#ffc15e'>Record</font></p>" , isim, x+80, y+20, pg, 40, 0x111111, 0x000000, 0, False)
+        self.room.addTextArea(5002, "<p align='center'><font color='#ffc15e'><r>Jogador</r></font></p>" , isim, x-80, y+20, pg-40, 40, 0x111111, 0xFFFFFF, 0, False)
+        self.room.addTextArea(5003, "<p align='center'><font color='#ffc15e'><BV>Record</BV></font></p>" , isim, x+80, y+20, pg, 40, 0x111111, 0x000000, 0, False)
         self.room.addTextArea(5035, "<p align='center'><a href='event:lbgeri'><font color='#ffc15e'>«</a> 1 / "+str(self.sayfasayi)+" <a href='event:lbileri'><b>»</b></font></a>" , isim, x, pu+10, pg, 40, 0x324650, 0x000000, 0, False)	
         self.room.addTextArea(5036, "<a href='event:lbkapat'><font color='#ffc15e'>X</font></a>" , isim, (x+pg)-11, y, 12, 15, 0x111111, 0x111111, 100, False)	
         
@@ -2070,8 +2064,8 @@ class Client:
                 if place == 1: ##############
                     self.playerScore += (4 if self.room.isRacing else 4 if self.room.isFastRacing else 16) if not self.room.noAutoScore else 0
                     if (self.room.getPlayerCountUnique() >= self.server.needToFirst and self.room.countStats and not self.isShaman and not self.canShamanRespawn and not self.isGuest) or self.server.isDebug:
-                        self.firstCount += 1
-                        self.cheeseCount += self.cheeseCounter
+                        self.firstCount += 16
+                        self.cheeseCount += 16
 
                         timeTaken = int((time.time() - (self.playerStartTimeMillis if self.room.autoRespawn else self.room.gameStartTimeMillis)) * 100)
                         if self.room.isFastRacing:
@@ -2088,7 +2082,7 @@ class Client:
                                             RecDate = Utils.getTime()
                                             await CursorMaps.execute('update Maps set Time = ?, Player = ?, RecDate = ? where code = ?', [timeTaken, self.playerName, RecDate, self.room.mapCode])
                                             for client in self.room.clients.values():
-                                                client.sendMessage("<J>%s</J> set a <J>new record</J> for this map in <J>%s</J> second." %(self.playerName,ntimeTaken))
+                                                client.sendMessage("<BV>%s</BV> <font color='#fc0303'>fez um novo record neste mapa em (<BV>%s</BV><font color='#fc0303'>) <font color='#fc0303'>segundos." %(self.playerName,ntimeTaken))
 
                                     except:
                                         pass
@@ -2096,18 +2090,20 @@ class Client:
                     if self.room.isFastRacing:
                         for player in self.room.clients.values():
                             if self.room.getPlayerCountUnique() >= self.server.needToFirst:
-                                player.sendMessage("<R>%s</R> is winner" %(self.playerName))
+                                player.sendMessage("<ROSE>%s</ROSE> foi o vencedor" %(self.playerName))
                                 player.sendRoundTime(3)
                                 self.room.changeMapTimers(3)
 
                 elif place == 2:
                     if self.room.getPlayerCountUnique() >= self.server.needToFirst and self.room.countStats and not self.isShaman and not self.canShamanRespawn:
-                        self.cheeseCount += self.cheeseCounter
+                        self.firstCount += 8
+                        self.cheeseCount += 8
                     self.playerScore += (3 if self.room.isRacing else 3 if self.room.isFastRacing else 14) if not self.room.noAutoScore else 0
                             
                 elif place == 3:
                     if self.room.getPlayerCountUnique() >= self.server.needToFirst and self.room.countStats and not self.isShaman and not self.canShamanRespawn:
-                        self.cheeseCount += self.cheeseCounter
+                        self.firstCount += 4
+                        self.cheeseCount += 4
                     self.playerScore += (2 if self.room.isRacing else 2 if self.room.isFastRacing else 12) if not self.room.noAutoScore else 0
 
                 if not place in [1, 2, 3]:
@@ -2215,18 +2211,19 @@ class Server(asyncio.Transport):
         self.needToFirst = int(self.config("game.needToFirst"))
         self.needToShamanPlayers = int(self.config("game.needToShamanPlayers"))
         self.activateAntiCheat = int(self.config("game.anticheat"))
-        self.lastPlayerID = int(self.getConfigID("lastPlayerID"))
-        self.lastTribeID = int(self.getConfigID("lastTribeID"))
-        self.lastCafeTopicID = int(self.getConfigID("lastCafeTopicID"))
-        self.lastMapEditeurCode = int(self.getConfigID('lastMapEditeurCode'))
-        self.lastShopGiftID = int(self.getConfigID('lastShopGiftID'))
+        self.lastPlayerID = int(self.config("game.lastPlayerID"))
+        self.lastTribeID = int(self.config("game.lastTribeID"))
+        self.lastCafeTopicID = int(self.config("game.cafelasttopicid"))
+        self.lastCafePostID = int(self.config("game.cafelastpostid"))
+        self.lastMapEditeurCode = int(self.config('game.lastMapCodeId'))
         self.initialCheeses = int(self.config("game.initialCheeses"))
         self.initialFraises = int(self.config("game.initialFraises"))
         self.minimumNormalSaves = int(self.config('game.minimumNormalSaves'))
         self.minimumHardSaves = int(self.config('game.minimumHardSaves'))
         self.authKey = int(self.configSWF("swf.authKey")) if self.configSWF("swf.authKey") != "" else random.randint(0, 2147483647)
+        self.lastShopGiftID = int(self.config("game.lastShopGiftID"))
+        self.lastPlayerCode = int(self.config("game.lastPlayerCode"))
         self.MaximumPlayers = int(self.config("game.maximumplayers"))
-        self.lastPlayerCode = 0
         
         # Boolean
         self.isDebug = bool(int(self.config("game.debug")))
@@ -2278,7 +2275,6 @@ class Server(asyncio.Transport):
         self.bootcampTitleList = {1:256.1, 3:257.1, 5:258.1, 7:259.1, 10:260.1, 15:261.1, 20:262.1, 25:263.1, 30:264.1, 40:265.1, 50:266.1, 60:267.1, 70:268.1, 80:269.1, 90:270.1, 100:271.1, 120:272.1, 140:273.1, 160:274.1, 180:275.1, 200:276.1, 250:277.1, 300:278.1, 350:279.1, 400:280.1, 500:281.1, 600:282.1, 700:283.1, 800:284.1, 900:285.1, 1000:286.1, 1001:256.2, 1003:257.2, 1005:258.2, 1007:259.2, 1010:260.2, 1015:261.2, 1020:262.2, 1025:263.2, 1030:264.2, 1040:265.2, 1050:266.2, 1060:267.2, 1070:268.2, 1080:269.2, 1090:270.2, 1100:271.2, 1120:272.2, 1140:273.2, 1160:274.2, 1180:275.2, 1200:276.2, 1250:277.2, 1300:278.2, 1350:279.2, 1400:280.2, 1500:281.2, 1600:282.2, 1700:283.2, 1800:284.2, 1900:285.2, 2000:286.2, 2001:256.3, 2003:257.3, 2005:258.3, 2007:259.3, 2010:260.3, 2015:261.3, 2020:262.3, 2025:263.3, 2030:264.3, 2040:265.3, 2050:266.3, 2060:267.3, 2070:268.3, 2080:269.3, 2090:270.3, 2100:271.3, 2120:272.3, 2140:273.3, 2160:274.3, 2180:275.3, 2200:276.3, 2250:277.3, 2300:278.3, 2350:279.3, 2400:280.3, 2500:281.3, 2600:282.3, 2700:283.3, 2800:284.3, 2900:285.3, 3000:286.3, 3001:256.4, 3003:257.4, 3005:258.4, 3007:259.4, 3010:260.4, 3015:261.4, 3020:262.4, 3025:263.4, 3030:264.4, 3040:265.4, 3050:266.4, 3060:267.4, 3070:268.4, 3080:269.4, 3090:270.4, 3100:271.4, 3120:272.4, 3140:273.4, 3160:274.4, 3180:275.4, 3200:276.4, 3250:277.4, 3300:278.4, 3350:279.4, 3400:280.4, 3500:281.4, 3600:282.4, 3700:283.4, 3800:284.4, 3900:285.4, 4000:286.4, 4001:256.5, 4003:257.5, 4005:258.5, 4007:259.5, 4010:260.5, 4015:261.5, 4020:262.5, 4025:263.5, 4030:264.5, 4040:265.5, 4050:266.5, 4060:267.5, 4070:268.5, 4080:269.5, 4090:270.5, 4100:271.5, 4120:272.5, 4140:273.5, 4160:274.5, 4180:275.5, 4200:276.5, 4250:277.5, 4300:278.5, 4350:279.5, 4400:280.5, 4500:281.5, 4600:282.5, 4700:283.5, 4800:284.5, 4900:285.5, 5000:286.5, 5001:256.6, 5003:257.6, 5005:258.6, 5007:259.6, 5010:260.6, 5015:261.6, 5020:262.6, 5025:263.6, 5030:264.6, 5040:265.6, 5050:266.6, 5060:267.6, 5070:268.6, 5080:269.6, 5090:270.6, 5100:271.6, 5120:272.6, 5140:273.6, 5160:274.6, 5180:275.6, 5200:276.6, 5250:277.6, 5300:278.6, 5350:279.6, 5400:280.6, 5500:281.6, 5600:282.6, 5700:283.6, 5800:284.6, 5900:285.6, 6000:286.6, 6001:256.7, 6003:257.7, 6005:258.7, 6007:259.7, 6010:260.7, 6015:261.7, 6020:262.7, 6025:263.7, 6030:264.7, 6040:265.7, 6050:266.7, 6060:267.7, 6070:268.7, 6080:269.7, 6090:270.7, 6100:271.7, 6120:272.7, 6140:273.7, 6160:274.7, 6180:275.7, 6200:276.7, 6250:277.7, 6300:278.7, 6350:279.7, 6400:280.7, 6500:281.7, 6600:282.7, 6700:283.7, 6800:284.7, 6900:285.7, 7000:286.7, 7001:256.8, 7003:257.8, 7005:258.8, 7007:259.8, 7010:260.8, 7015:261.8, 7020:262.8, 7025:263.8, 7030:264.8, 7040:265.8, 7050:266.8, 7060:267.8, 7070:268.8, 7080:269.8, 7090:270.8, 7100:271.8, 7120:272.8, 7140:273.8, 7160:274.8, 7180:275.8, 7200:276.8, 7250:277.8, 7300:278.8, 7350:279.8, 7400:280.8, 7500:281.8, 7600:282.8, 7700:283.8, 7800:284.8, 7900:285.8, 8000:286.8, 8001:256.9, 8003:257.9, 8005:258.9, 8007:259.9, 8010:260.9, 8015:261.9, 8020:262.9, 8025:263.9, 8030:264.9, 8040:265.9, 8050:266.9, 8060:267.9, 8070:268.9, 8080:269.9, 8090:270.9, 8100:271.9, 8120:272.9, 8140:273.9, 8160:274.9, 8180:275.9, 8200:276.9, 8250:277.9, 8300:278.9, 8350:279.9, 8400:280.9, 8500:281.9, 8600:282.9, 8700:283.9, 8800:284.9, 8900:285.9, 9000:286.9}
 
         # Files
-        self.shopPurchaseInfo = self.loadFile("./include/json/purchase_info.json", True)
         self.reports = self.loadFile("./include/json/modopwet.json", True)
         self.promotions = self.loadFile("./include/json/promotions.json")
         self.serverList = self.loadFile("./include/json/blacklist.json")
@@ -2310,9 +2306,6 @@ class Server(asyncio.Transport):
         self.loadVanillaMaps()
         self.loadPunishments()
         self.loadPromotions()
-        self.loadMinigames()
-        self.loadEvents()
-        self.loadOfficialMinigames()
         self.loadShopList()
         os.system("title Transformice")
         T = win.Terminal()
@@ -2363,8 +2356,7 @@ class Server(asyncio.Transport):
         if player != None:
             if modname == "Server":
                 self.sendServerMessage(f"The player {playerName} was banned for {bantime} hour(s). Reason: Vote Populaire.")
-            player.banHours += bantime
-            player.showTakeCheesePopup = True
+            player.banHours += bantime # <--
             Cursor['users'].update_one({'Username':playerName},{'$set':{'BanHours':player.banHours}})
             
             if player.banHours <= 360:
@@ -2402,12 +2394,6 @@ class Server(asyncio.Transport):
                 return True
             i += 1
         return False
-
-    def getConfigID(self, config_id):
-        r1 = Cursor['game_config'].find({'test':-1})
-        if r1 != None:
-            if r1[0][config_id] != None:
-                return r1[0][config_id]
 
     def checkRoom(self, roomName, langue):
         found = False
@@ -2491,15 +2477,14 @@ class Server(asyncio.Transport):
         return player.playerCode if player != None else 0
 
     def getPlayerID(self, playerName):
-        if playerName != "":
-            if playerName in self.players:
-                return self.players[playerName].playerID
+        if playerName in self.players:
+            return self.players[playerName].playerID
+        else:
+            rs = Cursor['users'].find_one({'Username':playerName})
+            if rs:
+                return rs['PlayerID']
             else:
-                rs = Cursor['users'].find_one({'Username':playerName})
-                if rs:
-                    return rs['PlayerID']
-                else:
-                    return -1
+                return -1
 
     def getPlayerIP(self, playerName):
         player = self.players.get(playerName)
@@ -2564,32 +2549,6 @@ class Server(asyncio.Transport):
         with open(directory, "r", encoding="utf8") as f:
             output = f.read()
         return json.loads(output) if readasjson == True else eval(output)
-
-    def loadMinigames(self):
-        self.minigames = {}
-        for fileName in os.listdir("./include/lua/minigames/semi-official/"):
-            with open(f"./include/lua/minigames/semi-official/{fileName}", encoding="utf8") as f:
-                self.minigames[fileName[:-4]] = f.read()
-
-    def loadOfficialMinigames(self):
-        self.officialminigames = {}
-        for fileName in os.listdir("./include/lua/minigames/official/"):
-            with open(f"./include/lua/minigames/official/{fileName}", encoding="utf8") as f:
-                self.minigames[fileName[:-4]] = f.read()
-                self.officialminigames[fileName[:-4]] = f.read()
-    
-    def loadEvents(self):
-        self.event = ""
-        for fileName in os.listdir("./include/lua/events/"):
-            with open(f"./include/lua/events/{fileName}", encoding="utf8") as f:
-                self.event = f.read()
-                break #read only 1 event
-        room = Room(self, "en-event")
-        room.luaRuntime = Lua(room, self)
-        room.luaRuntime.RunCode(self.event) 
-        for timer in [room.autoRespawnTimer, room.changeMapTimer, room.endSnowTimer, room.killAfkTimer, room.voteCloseTimer]:
-            if timer != None:
-                timer.cancel()
     
     def runEvent(self):
         for room in self.rooms:
@@ -2655,11 +2614,17 @@ class Server(asyncio.Transport):
         
         for item in self.shopEmojies:
             self.shopEmojiesCheck[str(item["id"])] = [item["cheese"], item["fraise"], item["purchasable"]]
-    
+
+        # NEEEEEEEEEED FIIIIIIIX
+
+
+
     def loadVanillaMaps(self):
         for fileName in os.listdir("./include/maps/vanilla/"):
             with open("./include/maps/vanilla/"+fileName) as f:
                 self.vanillaMaps[int(fileName[:-4])] = f.read()
+
+
 
     def mutePlayer(self, playerName, hours, reason, modName, isOriginal=False, isSilent=False):
         player = self.players.get(playerName)
@@ -2772,9 +2737,6 @@ class Server(asyncio.Transport):
         reload(_module)
         self.updateServer()
         await self.loadRecords(0)
-        self.loadMinigames()
-        self.loadEvents()
-        self.loadOfficialMinigames()
         self.loadPromotions()
         self.loadShopList()
         for player in self.players.copy().values():
@@ -2820,6 +2782,17 @@ class Server(asyncio.Transport):
         with open("./include/json/blacklist.json", "w") as f: 
             json.dump(self.serverList, f)
 
+    def updateConfig(self):
+        config.set("configGame", "game.lastShopGiftID", str(self.lastShopGiftID))
+        config.set("configGame", "game.lastPlayerCode", str(self.lastPlayerCode))
+        config.set("configGame", "game.lastMapCodeId", str(self.lastMapEditeurCode))
+        config.set("configGame", "game.lastPlayerID", str(self.lastPlayerID))
+        config.set("configGame", "game.lastTribeID", str(self.lastTribeID))
+        config.set("configGame", "game.cafelasttopicid", str(self.lastCafeTopicID))
+        config.set("configGame", "game.cafelastpostid", str(self.lastCafePostID))
+        with open("./include/configs.properties", "w") as f:
+            config.write(f)
+
     def updateModopwet(self):
         with open("./include/json/modopwet.json",'w') as F:
             F.write(json.dumps(self.reports))
@@ -2836,6 +2809,7 @@ class Server(asyncio.Transport):
 
     def updateServer(self, isRestarting=False):
         self.updateBlackList()
+        self.updateConfig()
         self.updateModopwet()
         self.updatePromotions()
         self.updateShop()
@@ -3013,7 +2987,6 @@ class Room:
         self.musicVideos = []
         self.lastHandymouse = [-1, -1]
         self.roomDetails = [False, False, False, False, False, False, 0, 0, 200, [], ""]
-        self.roomFuncorps = []
         
         self.noShamanMaps = [7, 8, 10, 14, 22, 23, 28, 29, 33, 42, 55, 57, 58, 61, 70, 77, 78, 87, 88, 122, 123, 124, 125, 126, 148, 149, 150, 151, 172, 173, 174, 175, 178, 179, 180, 188, 189, 190, 200, 201, 202, 203, 204, 205, 206, 207, 208, 209, 210, 218, 219, 220, 221, 222, 224, 225]
         self.mapList = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 136, 137, 138, 139, 140, 141, 142, 143, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 176, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 200, 201, 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223, 224, 225, 226, 227]
@@ -3302,10 +3275,10 @@ class Room:
                     t = rs[0] / 100.0 if rs[0] > 0 else rs[0] / 10.0
                     for player in self.clients.copy().values():
                         if player.langueID >= 0:
-                            player.sendMessage("<bl>Best record by <J>"+str(rs[1])+"</J> <bl>with second</font> (<v>"+str(t)+"</v>s)")
+                            player.sendMessage("<BV>Record feito por <R>"+str(rs[1])+"</R> <BV>com o melhor tempo de</font> (<R>"+str(t)+"</R>s)")
                 else:
                     for player in self.clients.copy().values():
-                        player.sendMessage("<R>(@%s)</R> <bl>map has not broken record</font>"% (self.mapCode))
+                        player.sendMessage("<R>(@%s)</R> <bl>Este mapa não possui record</font>"% (self.mapCode))
 
             for player in self.clients.copy().values():
                 if player.pet != 0:
@@ -3842,15 +3815,6 @@ class Room:
 
     def removeClient(self, player):
         if player.playerName in self.clients:
-            if player.playerName in self.roomFuncorps:
-                self.roomFuncorps.remove(player.playerName)
-                if len(self.roomFuncorps) == 0 and self.isFuncorp:
-                    for player in self.clients.copy().values():
-                        player.sendLangueMessage("", "<FC>$FunCorpDesactive</FC>")
-                        self.isFuncorp = False
-                        player.mouseName = ""
-                        player.tempMouseColor = ""
-        
             del self.clients[player.playerName]
             player.resetPlay()
             player.isDead = True
